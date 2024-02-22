@@ -152,3 +152,54 @@ impl RPN {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::RPN;
+
+    #[test]
+    fn basic_notation() {
+        let mut calc = RPN::new();
+        calc.parse("5 2 + -3 - 10 +");
+        let result = calc.peek();
+        assert_eq!(result, "20")
+    }
+
+    #[test]
+    fn exponent_notation()
+    {
+        let mut calc = RPN::new();
+        calc.parse("5 5 ^ 125 - 30 /");
+        let result = calc.peek();
+        assert_eq!(result, "100")
+    }
+
+    #[test]
+    fn manual_addition() {
+        let mut calc = RPN::new();
+        calc.push("10".to_string());
+        assert_eq!(calc.peek(), "10");
+        calc.push("99".to_string());
+        assert_eq!(calc.peek(), "99");
+        calc.add();
+        assert_eq!(calc.peek(), "109")
+    }
+
+    #[test]
+    fn manual_power_raising() {
+        let mut calc = RPN::new();
+        calc.push("5".to_string());
+        calc.push("5".to_string());
+        calc.exponent();
+        assert_eq!(calc.peek(), "3125")
+    }
+
+    #[test]
+    fn variable_testing() {
+        let mut calc = RPN::new();
+        calc.parse("50 20 + !temp");
+        calc.pop();
+        calc.parse("2 @temp");
+        assert_eq!(calc.peek(), "140")
+    }
+}
+
