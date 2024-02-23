@@ -52,8 +52,9 @@ impl RPN {
                                     val);
                             } else if token.chars().nth(0) == Some('@') {
                                 let result = token.as_str()[1..].to_string();
-                                if !result.is_empty() {
-                                    self.push(result.to_string())
+                                if !result.is_empty() {                                    
+                                    let entry = self.vars.get(&result).unwrap().to_owned();
+                                    self.push(entry)
                                 } else {
                                     self.push("".to_string())
                                 }
@@ -198,7 +199,7 @@ mod tests {
         let mut calc = RPN::new();
         calc.parse("50 20 + !temp");
         calc.pop();
-        calc.parse("2 @temp");
+        calc.parse("2 @temp *");
         assert_eq!(calc.peek(), "140")
     }
 }
