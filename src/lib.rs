@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use std::collections::HashMap;
 
 pub struct RPN
@@ -66,10 +65,6 @@ impl RPN {
                 }
             };
         }
-    }
-
-    fn push_str(&mut self, value: &str) {
-        self.stack.push(value.to_string());
     }
 
     ///
