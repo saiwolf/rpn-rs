@@ -42,14 +42,19 @@ fn main() -> Result<()> {
 
 fn dump_test_info() -> Result<()> {
     let mut calc = RPNParser::new();
-    println!("Dumping stack:\n");
+    println!("\t===STACK DUMP===\n");
+    println!("Equation: 10 + 20");
+    println!("Expression: 10 20 +");
     calc.push("10".to_string())?;
     calc.push("20".to_string())?;
     calc.push("+".to_string())?;
+    println!("Dumping stack:\n");
     calc.stack_dump();
     println!("Clearing parser memory...\n");
     calc.clear();
-    println!("Dumping temporary variables...\n");
+    println!("\t===VAR DUMP===\n");
+    println!("Equation: !temp = 10 + 20");
+    println!("Expression: 50 20 + !temp");
     calc.parse("50 20 + !temp")?;
     calc.var_dump();
     std::process::exit(0)
