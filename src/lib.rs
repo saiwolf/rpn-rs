@@ -52,16 +52,19 @@ impl RPNParser {
     /// assert_eq!(result, "20")
     /// ```
     pub fn parse(&mut self, expression: &str) -> Result<()> {
+        // Split the `expression` string slice into an array, delimited
+        // by whitespace.
         let tokens: Vec<String> = expression
             .split_whitespace()
-            .map(|s| s.to_string())
+            .map(|s| s.to_string()) // We need our tokens to be `String`
             .collect();
         if tokens.len() == 0 {
-            eprintln!("Nothing to parse!")
+            println!("Nothing to parse!")
         }
 
         for token in &tokens {
             match token.parse::<isize>() {
+                // The token is a number, so put it on the stack.
                 Ok(value) => {
                     let last = tokens.last().unwrap().to_owned();
                     if last == value.to_string() {
@@ -70,6 +73,8 @@ impl RPNParser {
                         self.push(value.to_string())?
                     }
                 }
+                // The token is not a number, so it's either
+                // an operation, or invalid.
                 Err(_) => match token.to_lowercase().as_str() {
                     "x" => self.exchange()?,
                     "?" => self.stack_dump(),
@@ -80,18 +85,28 @@ impl RPNParser {
                     "/" => self.divide()?,
                     "^" => self.exponent()?,
                     _ => {
+                        // Dealing with the advanced variable operations...
                         if token.chars().nth(0) == Some('!') {
+                            // We're storing the number at the top of the stack
+                            // in a key/value HashMap: `self.vars`
+                            // self.vars[key] is the variable name without the '!'
+                            // self.vars[key][value] is the number we're storing.
                             let val = self.peek().unwrap();
                             self.vars.insert(token.as_str()[1..].to_string(), val);
                         } else if token.chars().nth(0) == Some('@') {
+                            // We're retrieving the number stored in the variable
+                            // '@variable'.
                             let result = token.as_str()[1..].to_string();
                             if !result.is_empty() {
+                                // Retrieve the number stored in the variable
+                                // '@variable'.
                                 let entry = self.vars.get(&result).unwrap().to_owned();
                                 self.push(entry)?
                             } else {
-                                self.push("".to_string())?
+                                panic!("Unknown variable: `{}`", token)
                             }
                         } else {
+                            // Invalid token, so we panic!
                             panic!("Unknown operator or number: `{}`", token)
                         }
                     }
