@@ -152,8 +152,7 @@ impl RPNParser {
     /// Adds the first two values on `self.stack` and
     /// pushes the sum to the top of `self.stack`.
     pub fn add(&mut self) -> Result<()> {
-        let x: isize = self.pop()?.parse()?;
-        let y: isize = self.pop()?.parse()?;
+        let (x, y) = self.retrieve_stack_values()?;
         let result = x + y;
         self.push(result.to_string())?;
         Ok(())
@@ -164,8 +163,7 @@ impl RPNParser {
     ///
     /// The equation here is `self.stack[1] - self.stack[0]` due the stack ordering.
     pub fn subtract(&mut self) -> Result<()> {
-        let x: isize = self.pop()?.parse()?;
-        let y: isize = self.pop()?.parse()?;
+        let (x, y) = self.retrieve_stack_values()?;
         let result = y - x;
         Ok(self.push(result.to_string())?)
     }
@@ -173,8 +171,7 @@ impl RPNParser {
     /// Multiplies the first two values on `self.stack` and
     /// pushes the result to the top of `self.stack`.
     pub fn multiply(&mut self) -> Result<()> {
-        let x: isize = self.pop()?.parse()?;
-        let y: isize = self.pop()?.parse()?;
+        let (x, y) = self.retrieve_stack_values()?;
         let result = x * y;
         Ok(self.push(result.to_string())?)
     }
@@ -184,8 +181,7 @@ impl RPNParser {
     ///
     /// The equation here is `self.stack[1] / self.stack[0]` due the stack ordering.
     pub fn divide(&mut self) -> Result<()> {
-        let x: isize = self.pop()?.parse()?;
-        let y: isize = self.pop()?.parse()?;
+        let (x, y) = self.retrieve_stack_values()?;
         let result = y / x;
         Ok(self.push(result.to_string())?)
     }
@@ -213,6 +209,17 @@ impl RPNParser {
         self.push(t)?;
         self.push(t1)?;
         Ok(())
+    }
+
+    ///
+    /// Utility function.
+    ///
+    /// Retrieves the first and second values off the stack and
+    /// returns them as `isize`.
+    fn retrieve_stack_values(&mut self) -> Result<(isize, isize)> {
+        let x: isize = self.pop()?.parse()?;
+        let y: isize = self.pop()?.parse()?;
+        Ok((x, y))
     }
 
     /// Diagnostic function. Dumps the contents of `self.stack`.    
