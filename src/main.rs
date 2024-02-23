@@ -1,9 +1,43 @@
+#![allow(dead_code)]
 use anyhow::Result;
 use clap::Parser;
 use rpn_calculator::RPNParser;
 
+#[derive(Parser)]
+#[command(name = "Reverse Polish Notation (RPN) Calculator",
+          version, about, long_about = None)]
+struct Cli {
+    #[arg(
+        short,
+        long,
+        help = "Reverse Polish Notation Equation",
+        conflicts_with = "test_info"
+    )]
+    expression: Option<String>,
+    #[arg(
+        short,
+        long,
+        help = "Show some test info and exit.",
+        conflicts_with = "expression"
+    )]
+    test_info: bool,
+}
+
 fn main() -> Result<()> {
-    Ok(dump_test_info()?)
+    let args = Cli::parse();
+    if args.test_info {
+        dump_test_info()?
+    }
+    match args.expression {
+        Some(v) => {
+            let mut calc = RPNParser::new();
+            calc.parse(&v)?;
+            let result = calc.peek()?;
+            println!("{}", result)
+        }
+        None => (),
+    }
+    Ok(())
 }
 
 fn dump_test_info() -> Result<()> {
@@ -18,5 +52,5 @@ fn dump_test_info() -> Result<()> {
     println!("Dumping temporary variables...\n");
     calc.parse("50 20 + !temp")?;
     calc.var_dump();
-    Ok(())
+    std::process::exit(0)
 }
