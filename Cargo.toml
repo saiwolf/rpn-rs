@@ -2,6 +2,7 @@
 name = "rpn_calculator"
 version = "1.0.0"
 edition = "2021"
+authors = ["Robert Cato <saiwolf@swmnu.net>"]
 
 [lib]
 name = "rpn_calculator"
