@@ -2,24 +2,24 @@ use anyhow::{Context, Result};
 use std::collections::HashMap;
 
 /// Parser Struct for holding the stack array and variable hashmap
-pub struct Parser {
+pub struct RPNParser {
     /// The main stack. Numbers and operators go here.
     pub stack: Vec<String>,
     /// A Hashmap used to hold temporary variables for advanced processing.
     pub vars: HashMap<String, String>,
 }
 
-impl Parser {
+impl RPNParser {
     /// Returns a instance of `Parser` with initialized values.
     ///
     /// # Example
     ///
     /// ```
-    /// use rpn_calculator::Parser;
-    /// let mut calc = Parser::new();
+    /// use rpn_calculator::RPNParser;
+    /// let mut calc = RPNParser::new();
     /// ```
     pub fn new() -> Self {
-        Parser {
+        RPNParser {
             stack: Vec::new(),
             vars: HashMap::new(),
         }
@@ -33,9 +33,9 @@ impl Parser {
     /// # Example
     ///
     /// ```
-    /// use rpn_calculator::Parser;
+    /// use rpn_calculator::RPNParser;
     ///
-    /// let mut calc = Parser::new();
+    /// let mut calc = RPNParser::new();
     ///
     /// calc.parse("5 2 + -3 - 10 +").unwrap(); // .parse() returns a Result
     ///
@@ -221,7 +221,7 @@ mod tests {
 
     #[test]
     fn basic_notation() {
-        let mut calc = Parser::new();
+        let mut calc = RPNParser::new();
         calc.parse("5 2 + -3 - 10 +").unwrap();
         let result = calc.peek().unwrap();
         assert_eq!(result, "20")
@@ -229,7 +229,7 @@ mod tests {
 
     #[test]
     fn exponent_notation() {
-        let mut calc = Parser::new();
+        let mut calc = RPNParser::new();
         calc.parse("5 5 ^ 125 - 30 /").unwrap();
         let result = calc.peek().unwrap();
         assert_eq!(result, "100")
@@ -237,7 +237,7 @@ mod tests {
 
     #[test]
     fn manual_addition() {
-        let mut calc = Parser::new();
+        let mut calc = RPNParser::new();
         calc.push("10".to_string()).unwrap();
         assert_eq!(calc.peek().unwrap(), "10");
         calc.push("99".to_string()).unwrap();
@@ -248,7 +248,7 @@ mod tests {
 
     #[test]
     fn manual_power_raising() {
-        let mut calc = Parser::new();
+        let mut calc = RPNParser::new();
         calc.push("5".to_string()).unwrap();
         calc.push("5".to_string()).unwrap();
         calc.exponent().unwrap();
@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn variable_testing() {
-        let mut calc = Parser::new();
+        let mut calc = RPNParser::new();
         calc.parse("50 20 + !temp").unwrap();
         calc.pop().unwrap();
         calc.parse("2 @temp *").unwrap();

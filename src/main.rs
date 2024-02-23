@@ -1,12 +1,13 @@
 use anyhow::Result;
-use rpn_calculator::Parser;
+use clap::Parser;
+use rpn_calculator::RPNParser;
 
 fn main() -> Result<()> {
     Ok(dump_test_info()?)
 }
 
 fn dump_test_info() -> Result<()> {
-    let mut calc = Parser::new();
+    let mut calc = RPNParser::new();
     println!("Dumping stack:\n");
     calc.push("10".to_string())?;
     calc.push("20".to_string())?;
