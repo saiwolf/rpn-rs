@@ -1,24 +1,25 @@
+use anyhow::{Context, Result};
 use std::collections::HashMap;
 
-/// RPN Struct for holding the stack and variable hashmap
-pub struct RPN {
+/// Parser Struct for holding the stack array and variable hashmap
+pub struct Parser {
     /// The main stack. Numbers and operators go here.
     pub stack: Vec<String>,
     /// A Hashmap used to hold temporary variables for advanced processing.
     pub vars: HashMap<String, String>,
 }
 
-impl RPN {
-    /// Returns a instance of `RPN` with initialized values.
+impl Parser {
+    /// Returns a instance of `Parser` with initialized values.
     ///
     /// # Example
     ///
     /// ```
-    /// use rpn::RPN;
-    /// let mut calc = RPN::new();
+    /// use rpn_calculator::Parser;
+    /// let mut calc = Parser::new();
     /// ```
     pub fn new() -> Self {
-        RPN {
+        Parser {
             stack: Vec::new(),
             vars: HashMap::new(),
         }
@@ -32,23 +33,23 @@ impl RPN {
     /// # Example
     ///
     /// ```
-    /// use rpn::RPN;
+    /// use rpn_calculator::Parser;
     ///
-    /// let mut calc = RPN::new();
+    /// let mut calc = Parser::new();
     ///
-    /// calc.parse("5 2 + -3 - 10 +");
+    /// calc.parse("5 2 + -3 - 10 +").unwrap(); // .parse() returns a Result
     ///
-    /// let result = calc.peek();
+    /// let result = calc.peek().unwrap(); // .peek() returns a Result
     ///
     /// assert_eq!(result, "20")
     /// ```
-    pub fn parse(&mut self, expression: &str) {
+    pub fn parse(&mut self, expression: &str) -> Result<()> {
         let tokens: Vec<String> = expression
             .split_whitespace()
             .map(|s| s.to_string())
             .collect();
         if tokens.len() == 0 {
-            println!("Nothing to parse!")
+            eprintln!("Nothing to parse!")
         }
 
         for token in &tokens {
@@ -56,31 +57,31 @@ impl RPN {
                 Ok(value) => {
                     let last = tokens.last().unwrap().to_owned();
                     if last == value.to_string() {
-                        panic!("Last item needs to be an operator!")
+                        eprintln!("Last item needs to be an operator!")
                     } else {
-                        self.push(value.to_string())
+                        self.push(value.to_string())?
                     }
                 }
                 Err(_) => match token.to_lowercase().as_str() {
-                    "x" => self.exchange(),
+                    "x" => self.exchange()?,
                     "?" => self.stack_dump(),
                     "&" => self.var_dump(),
-                    "+" => self.add(),
-                    "-" => self.subtract(),
-                    "*" => self.multiply(),
-                    "/" => self.divide(),
-                    "^" => self.exponent(),
+                    "+" => self.add()?,
+                    "-" => self.subtract()?,
+                    "*" => self.multiply()?,
+                    "/" => self.divide()?,
+                    "^" => self.exponent()?,
                     _ => {
                         if token.chars().nth(0) == Some('!') {
-                            let val = self.peek();
+                            let val = self.peek().unwrap();
                             self.vars.insert(token.as_str()[1..].to_string(), val);
                         } else if token.chars().nth(0) == Some('@') {
                             let result = token.as_str()[1..].to_string();
                             if !result.is_empty() {
                                 let entry = self.vars.get(&result).unwrap().to_owned();
-                                self.push(entry)
+                                self.push(entry)?
                             } else {
-                                self.push("".to_string())
+                                self.push("".to_string())?
                             }
                         } else {
                             panic!("Unknown operator or number: `{}`", token)
@@ -89,13 +90,14 @@ impl RPN {
                 },
             };
         }
+        Ok(())
     }
 
     ///
     /// Inserts a value at the top of `self.stack`.
     ///
-    fn push(&mut self, value: String) {
-        self.stack.push(value);
+    pub fn push(&mut self, value: String) -> Result<()> {
+        Ok(self.stack.push(value))
     }
 
     ///
@@ -103,8 +105,9 @@ impl RPN {
     ///
     /// Will panic if the stack is empty.
     ///
-    fn pop(&mut self) -> String {
-        self.stack.pop().expect("Stack is empty.")
+    pub fn pop(&mut self) -> Result<String> {
+        let result = self.stack.pop().context("Stack is empty!")?;
+        Ok(result)
     }
 
     ///
@@ -112,59 +115,67 @@ impl RPN {
     ///
     /// Will panic if the stack is empty.
     ///
-    pub fn peek(&mut self) -> String {
-        self.stack.last().expect("Stack is empty.").to_string()
+    pub fn peek(&mut self) -> Result<String> {
+        let result = self.stack.last().context("Stack is empty!")?.to_string();
+        Ok(result)
+    }
+
+    /// Clears the parser memory.
+    pub fn clear(&mut self) {
+        self.stack = Vec::new();
+        self.vars = HashMap::new();
     }
 
     /// Adds the first two values on `self.stack` and
     /// pushes the sum to the top of `self.stack`.
-    fn add(&mut self) {
-        let x: isize = self.pop().parse().unwrap();
-        let y: isize = self.pop().parse().unwrap();
+    pub fn add(&mut self) -> Result<()> {
+        let x: isize = self.pop()?.parse()?;
+        let y: isize = self.pop()?.parse()?;
         let result = x + y;
-        self.push(result.to_string());
+        self.push(result.to_string())?;
+        Ok(())
     }
 
     /// Subtracts the first two values on `self.stack` and
     /// pushes the difference to the top of `self.stack`.
     ///
     /// The equation here is `self.stack[1] - self.stack[0]` due the stack ordering.
-    fn subtract(&mut self) {
-        let x: isize = self.pop().parse().unwrap();
-        let y: isize = self.pop().parse().unwrap();
+    pub fn subtract(&mut self) -> Result<()> {
+        let x: isize = self.pop()?.parse()?;
+        let y: isize = self.pop()?.parse()?;
         let result = y - x;
-        self.push(result.to_string());
+        Ok(self.push(result.to_string())?)
     }
 
     /// Multiplies the first two values on `self.stack` and
     /// pushes the result to the top of `self.stack`.
-    fn multiply(&mut self) {
-        let x: isize = self.pop().parse().unwrap();
-        let y: isize = self.pop().parse().unwrap();
+    pub fn multiply(&mut self) -> Result<()> {
+        let x: isize = self.pop()?.parse()?;
+        let y: isize = self.pop()?.parse()?;
         let result = x * y;
-        self.push(result.to_string());
+        Ok(self.push(result.to_string())?)
     }
 
     /// Divides the first two values on `self.stack` and
     /// pushes the result to the top of `self.stack`.
     ///
     /// The equation here is `self.stack[1] / self.stack[0]` due the stack ordering.
-    fn divide(&mut self) {
-        let x: isize = self.pop().parse().unwrap();
-        let y: isize = self.pop().parse().unwrap();
+    pub fn divide(&mut self) -> Result<()> {
+        let x: isize = self.pop()?.parse()?;
+        let y: isize = self.pop()?.parse()?;
         let result = y / x;
-        self.push(result.to_string());
+        Ok(self.push(result.to_string())?)
     }
 
     /// Raises a base value to a specified power.
     ///
     /// The `base_val` is the first value off `self.stack`.
     /// The `power` is the second value off `self.stack`.
-    fn exponent(&mut self) {
-        let base_val: isize = self.pop().parse().unwrap();
-        let power: u32 = self.pop().parse().unwrap();
+    pub fn exponent(&mut self) -> Result<()> {
+        let base_val: isize = self.pop()?.parse()?;
+        let power: u32 = self.pop()?.parse()?;
         let result = base_val.pow(power);
-        self.push(result.to_string());
+        Ok(self.push(result.to_string())?)
     }
 
     /// Exchanges the position of the first two values on `self.stack`.
@@ -173,18 +184,19 @@ impl RPN {
     /// to `2, 10`
     ///
     /// Will panic if `self.stack` is empty.    
-    fn exchange(&mut self) {
-        let t = self.stack.pop().expect("Stack is empty.");
-        let t1 = self.stack.pop().expect("Stack is empty.");
-        self.stack.push(t);
-        self.stack.push(t1);
+    pub fn exchange(&mut self) -> Result<()> {
+        let t = self.pop()?;
+        let t1 = self.pop()?;
+        self.push(t)?;
+        self.push(t1)?;
+        Ok(())
     }
 
-    /// Diagnostic function. Dumps the contents of `self.stack`.
-    fn stack_dump(&mut self) {
+    /// Diagnostic function. Dumps the contents of `self.stack`.    
+    pub fn stack_dump(&self) {
         if self.stack.len() > 0 {
             print!("STACK:\n");
-            for item in self.stack.clone() {
+            for item in self.stack.to_owned() {
                 println!("\tStack = {}", item);
             }
             print!("\n");
@@ -192,10 +204,10 @@ impl RPN {
     }
 
     /// Diagnostic function. Dumps the contents of `self.vars`.
-    fn var_dump(&mut self) {
+    pub fn var_dump(&self) {
         if self.stack.len() > 0 {
             print!("TEMP VARS\n");
-            for (key, value) in self.vars.clone() {
+            for (key, value) in self.vars.to_owned() {
                 println!("\tKey = {} = {}", key, value);
             }
             print!("\n");
@@ -205,50 +217,50 @@ impl RPN {
 
 #[cfg(test)]
 mod tests {
-    use crate::RPN;
+    use super::*;
 
     #[test]
     fn basic_notation() {
-        let mut calc = RPN::new();
-        calc.parse("5 2 + -3 - 10 +");
-        let result = calc.peek();
+        let mut calc = Parser::new();
+        calc.parse("5 2 + -3 - 10 +").unwrap();
+        let result = calc.peek().unwrap();
         assert_eq!(result, "20")
     }
 
     #[test]
     fn exponent_notation() {
-        let mut calc = RPN::new();
-        calc.parse("5 5 ^ 125 - 30 /");
-        let result = calc.peek();
+        let mut calc = Parser::new();
+        calc.parse("5 5 ^ 125 - 30 /").unwrap();
+        let result = calc.peek().unwrap();
         assert_eq!(result, "100")
     }
 
     #[test]
     fn manual_addition() {
-        let mut calc = RPN::new();
-        calc.push("10".to_string());
-        assert_eq!(calc.peek(), "10");
-        calc.push("99".to_string());
-        assert_eq!(calc.peek(), "99");
-        calc.add();
-        assert_eq!(calc.peek(), "109")
+        let mut calc = Parser::new();
+        calc.push("10".to_string()).unwrap();
+        assert_eq!(calc.peek().unwrap(), "10");
+        calc.push("99".to_string()).unwrap();
+        assert_eq!(calc.peek().unwrap(), "99");
+        calc.add().unwrap();
+        assert_eq!(calc.peek().unwrap(), "109")
     }
 
     #[test]
     fn manual_power_raising() {
-        let mut calc = RPN::new();
-        calc.push("5".to_string());
-        calc.push("5".to_string());
-        calc.exponent();
-        assert_eq!(calc.peek(), "3125")
+        let mut calc = Parser::new();
+        calc.push("5".to_string()).unwrap();
+        calc.push("5".to_string()).unwrap();
+        calc.exponent().unwrap();
+        assert_eq!(calc.peek().unwrap(), "3125")
     }
 
     #[test]
     fn variable_testing() {
-        let mut calc = RPN::new();
-        calc.parse("50 20 + !temp");
-        calc.pop();
-        calc.parse("2 @temp *");
-        assert_eq!(calc.peek(), "140")
+        let mut calc = Parser::new();
+        calc.parse("50 20 + !temp").unwrap();
+        calc.pop().unwrap();
+        calc.parse("2 @temp *").unwrap();
+        assert_eq!(calc.peek().unwrap(), "140")
     }
 }
