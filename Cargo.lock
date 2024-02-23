@@ -127,7 +127,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rpn_calculator"
+name = "rpn-rs"
 version = "1.0.0"
 dependencies = [
  "anyhow",

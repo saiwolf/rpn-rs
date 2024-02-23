@@ -231,6 +231,7 @@ mod tests {
     fn basic_notation() {
         let mut calc = RPNParser::new();
         calc.parse("5 2 + -3 - 10 +").unwrap();
+        // (5+2) - (-3) + 10 = 20
         let result = calc.peek().unwrap();
         assert_eq!(result, "20")
     }
@@ -239,6 +240,7 @@ mod tests {
     fn exponent_notation() {
         let mut calc = RPNParser::new();
         calc.parse("5 5 ^ 125 - 30 /").unwrap();
+        // (((5^5) - 125) / 30) = 100
         let result = calc.peek().unwrap();
         assert_eq!(result, "100")
     }
@@ -246,29 +248,32 @@ mod tests {
     #[test]
     fn manual_addition() {
         let mut calc = RPNParser::new();
-        calc.push("10".to_string()).unwrap();
+        calc.push("10".to_string()).unwrap(); // Push '10' to the top of the stack.
         assert_eq!(calc.peek().unwrap(), "10");
         calc.push("99".to_string()).unwrap();
-        assert_eq!(calc.peek().unwrap(), "99");
+        assert_eq!(calc.peek().unwrap(), "99"); // Push '99' to the top of the stack.
         calc.add().unwrap();
+        // 99 + 10 = 109 ('99' is at the top of the stack, followed by '10')
         assert_eq!(calc.peek().unwrap(), "109")
     }
 
     #[test]
     fn manual_power_raising() {
         let mut calc = RPNParser::new();
-        calc.push("5".to_string()).unwrap();
-        calc.push("5".to_string()).unwrap();
+        calc.push("5".to_string()).unwrap(); // Push 5 to the top of the stack
+        calc.push("5".to_string()).unwrap(); // Push another 5 to the top of the stack
         calc.exponent().unwrap();
+        // 5^5 = 3125
         assert_eq!(calc.peek().unwrap(), "3125")
     }
 
     #[test]
     fn variable_testing() {
         let mut calc = RPNParser::new();
-        calc.parse("50 20 + !temp").unwrap();
-        calc.pop().unwrap();
-        calc.parse("2 @temp *").unwrap();
+        calc.parse("50 20 + !temp").unwrap(); // 50 + 20 = 70 <-- Store result in temporary variable named 'temp'.
+        calc.pop().unwrap(); // Pops '70' off the stack; which should now be empty.
+        calc.parse("2 @temp *").unwrap(); // Retrieve 'temp' var, which should be '70'.
+                                          // 2 * `temp`(70) = 140.
         assert_eq!(calc.peek().unwrap(), "140")
     }
 }
