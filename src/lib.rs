@@ -66,7 +66,7 @@ impl RPNParser {
                 Ok(value) => {
                     let last = tokens.last().unwrap().to_owned();
                     if last == value.to_string() {
-                        eprintln!("Last item needs to be an operator!")
+                        panic!("Last item needs to be an operator!")
                     } else {
                         self.push(value.to_string())
                     }
