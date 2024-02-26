@@ -10,6 +10,7 @@ use anyhow::{Context, Result};
 use std::collections::HashMap;
 
 /// Parser Struct for holding the stack array and variable hashmap
+#[derive(Default)]
 pub struct RPNParser {
     /// The main stack. Numbers and operators go here.
     pub stack: Vec<String>,
@@ -23,14 +24,11 @@ impl RPNParser {
     /// # Example
     ///
     /// ```
-    /// use rpn_calculator::RPNParser;
+    /// # use rpn_calculator::RPNParser;
     /// let mut calc = RPNParser::new();
     /// ```
     pub fn new() -> Self {
-        RPNParser {
-            stack: Vec::new(),
-            vars: HashMap::new(),
-        }
+        Default::default()
     }
 
     /// Parses a Reverse Polish Notation Equation and calculates the result.
@@ -70,7 +68,7 @@ impl RPNParser {
                     if last == value.to_string() {
                         eprintln!("Last item needs to be an operator!")
                     } else {
-                        self.push(value.to_string())?
+                        self.push(value.to_string())
                     }
                 }
                 // The token is not a number, so it's either
@@ -101,7 +99,7 @@ impl RPNParser {
                                 // Retrieve the number stored in the variable
                                 // '@variable'.
                                 let entry = self.vars.get(&result).unwrap().to_owned();
-                                self.push(entry)?
+                                self.push(entry)
                             } else {
                                 panic!("Unknown variable: `{}`", token)
                             }
@@ -119,14 +117,12 @@ impl RPNParser {
     ///
     /// Inserts a value at the top of `self.stack`.
     ///
-    pub fn push(&mut self, value: String) -> Result<()> {
-        Ok(self.stack.push(value))
+    pub fn push(&mut self, value: String) {
+        self.stack.push(value)
     }
 
     ///
     /// Removes the first entry from `self.stack` and returns it.
-    ///
-    /// Will panic if the stack is empty.
     ///
     pub fn pop(&mut self) -> Result<String> {
         let result = self.stack.pop().context("Stack is empty!")?;
@@ -136,8 +132,6 @@ impl RPNParser {
     ///
     /// Returns the value at the top of `self.stack` **without** removing it.
     ///
-    /// Will panic if the stack is empty.
-    ///
     pub fn peek(&mut self) -> Result<String> {
         let result = self.stack.last().context("Stack is empty!")?.to_string();
         Ok(result)
@@ -145,8 +139,8 @@ impl RPNParser {
 
     /// Clears the parser memory.
     pub fn clear(&mut self) {
-        self.stack = Vec::new();
-        self.vars = HashMap::new();
+        self.stack.clear();
+        self.vars.clear();
     }
 
     /// Adds the first two values on `self.stack` and
@@ -154,7 +148,7 @@ impl RPNParser {
     pub fn add(&mut self) -> Result<()> {
         let (x, y) = self.retrieve_stack_values()?;
         let result = x + y;
-        self.push(result.to_string())?;
+        self.push(result.to_string());
         Ok(())
     }
 
@@ -165,7 +159,7 @@ impl RPNParser {
     pub fn subtract(&mut self) -> Result<()> {
         let (x, y) = self.retrieve_stack_values()?;
         let result = y - x;
-        Ok(self.push(result.to_string())?)
+        Ok(self.push(result.to_string()))
     }
 
     /// Multiplies the first two values on `self.stack` and
@@ -173,7 +167,7 @@ impl RPNParser {
     pub fn multiply(&mut self) -> Result<()> {
         let (x, y) = self.retrieve_stack_values()?;
         let result = x * y;
-        Ok(self.push(result.to_string())?)
+        Ok(self.push(result.to_string()))
     }
 
     /// Divides the first two values on `self.stack` and
@@ -183,7 +177,7 @@ impl RPNParser {
     pub fn divide(&mut self) -> Result<()> {
         let (x, y) = self.retrieve_stack_values()?;
         let result = y / x;
-        Ok(self.push(result.to_string())?)
+        Ok(self.push(result.to_string()))
     }
 
     /// Raises a base value to a specified power.
@@ -194,7 +188,7 @@ impl RPNParser {
         let base_val: isize = self.pop()?.parse()?;
         let power: u32 = self.pop()?.parse()?;
         let result = base_val.pow(power);
-        Ok(self.push(result.to_string())?)
+        Ok(self.push(result.to_string()))
     }
 
     /// Exchanges the position of the first two values on `self.stack`.
@@ -206,8 +200,8 @@ impl RPNParser {
     pub fn exchange(&mut self) -> Result<()> {
         let t = self.pop()?;
         let t1 = self.pop()?;
-        self.push(t)?;
-        self.push(t1)?;
+        self.push(t);
+        self.push(t1);
         Ok(())
     }
 
@@ -270,9 +264,9 @@ mod tests {
     #[test]
     fn manual_addition() {
         let mut calc = RPNParser::new();
-        calc.push("10".to_string()).unwrap(); // Push '10' to the top of the stack.
+        calc.push("10".to_string()); // Push '10' to the top of the stack.
         assert_eq!(calc.peek().unwrap(), "10");
-        calc.push("99".to_string()).unwrap();
+        calc.push("99".to_string());
         assert_eq!(calc.peek().unwrap(), "99"); // Push '99' to the top of the stack.
         calc.add().unwrap();
         // 99 + 10 = 109 ('99' is at the top of the stack, followed by '10')
@@ -282,8 +276,8 @@ mod tests {
     #[test]
     fn manual_power_raising() {
         let mut calc = RPNParser::new();
-        calc.push("5".to_string()).unwrap(); // Push 5 to the top of the stack
-        calc.push("5".to_string()).unwrap(); // Push another 5 to the top of the stack
+        calc.push("5".to_string()); // Push 5 to the top of the stack
+        calc.push("5".to_string()); // Push another 5 to the top of the stack
         calc.exponent().unwrap();
         // 5^5 = 3125
         assert_eq!(calc.peek().unwrap(), "3125")

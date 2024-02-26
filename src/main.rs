@@ -52,9 +52,9 @@ fn dump_test_info() -> Result<()> {
     println!("\t===STACK DUMP===\n");
     println!("Equation: 10 + 20");
     println!("Expression: 10 20 +");
-    calc.push("10".to_string())?;
-    calc.push("20".to_string())?;
-    calc.push("+".to_string())?;
+    calc.push("10".to_string());
+    calc.push("20".to_string());
+    calc.push("+".to_string());
     println!("Dumping stack:\n");
     calc.stack_dump();
     println!("Clearing parser memory...\n");
