@@ -1,11 +1,11 @@
-///! # RPN Calculator
-///!
-///! This is a small program that parses a Reverse Polish Notation Equation
-///! and returns the result.
-///!
-///! This program is based off https://gist.github.com/wd5gnr/68d067c3c42a2e0e9a27b083e01f7080#file-rpn-py
-///! by https://github.com/wd5gnr
-////////////////////////////////////////////////////////////////////////////////
+// # RPN Calculator
+//
+// This is a small program that parses a Reverse Polish Notation Equation
+// and returns the result.
+//
+// This program is based off https://gist.github.com/wd5gnr/68d067c3c42a2e0e9a27b083e01f7080#file-rpn-py
+// by https://github.com/wd5gnr
+
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 
@@ -56,7 +56,7 @@ impl RPNParser {
             .split_whitespace()
             .map(|s| s.to_string()) // We need our tokens to be `String`
             .collect();
-        if tokens.len() == 0 {
+        if tokens.is_empty() {
             println!("Nothing to parse!")
         }
 
@@ -159,7 +159,8 @@ impl RPNParser {
     pub fn subtract(&mut self) -> Result<()> {
         let (x, y) = self.retrieve_stack_values()?;
         let result = y - x;
-        Ok(self.push(result.to_string()))
+        self.push(result.to_string());
+        Ok(())
     }
 
     /// Multiplies the first two values on `self.stack` and
@@ -167,7 +168,8 @@ impl RPNParser {
     pub fn multiply(&mut self) -> Result<()> {
         let (x, y) = self.retrieve_stack_values()?;
         let result = x * y;
-        Ok(self.push(result.to_string()))
+        self.push(result.to_string());
+        Ok(())
     }
 
     /// Divides the first two values on `self.stack` and
@@ -177,7 +179,8 @@ impl RPNParser {
     pub fn divide(&mut self) -> Result<()> {
         let (x, y) = self.retrieve_stack_values()?;
         let result = y / x;
-        Ok(self.push(result.to_string()))
+        self.push(result.to_string());
+        Ok(())
     }
 
     /// Raises a base value to a specified power.
@@ -188,7 +191,8 @@ impl RPNParser {
         let base_val: isize = self.pop()?.parse()?;
         let power: u32 = self.pop()?.parse()?;
         let result = base_val.pow(power);
-        Ok(self.push(result.to_string()))
+        self.push(result.to_string());
+        Ok(())
     }
 
     /// Exchanges the position of the first two values on `self.stack`.
@@ -218,23 +222,23 @@ impl RPNParser {
 
     /// Diagnostic function. Dumps the contents of `self.stack`.    
     pub fn stack_dump(&self) {
-        if self.stack.len() > 0 {
-            print!("STACK:\n");
-            for item in self.stack.to_owned() {
+        if !self.stack.is_empty() {
+            println!("STACK:");
+            for item in &self.stack {
                 println!("\tStack = {}", item);
             }
-            print!("\n");
+            println!();
         }
     }
 
     /// Diagnostic function. Dumps the contents of `self.vars`.
     pub fn var_dump(&self) {
-        if self.stack.len() > 0 {
-            print!("TEMP VARS\n");
-            for (key, value) in self.vars.to_owned() {
+        if !self.stack.is_empty() {
+            println!("TEMP VARS:");
+            for (key, value) in &self.vars {
                 println!("\tKey = {} = {}", key, value);
             }
-            print!("\n");
+            println!();
         }
     }
 }

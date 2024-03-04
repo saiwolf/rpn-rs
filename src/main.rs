@@ -1,11 +1,11 @@
-///! # RPN Calculator
-///!
-///! This is a small program that parses a Reverse Polish Notation Equation
-///! and returns the result.
-///!
-///! This program is based off https://gist.github.com/wd5gnr/68d067c3c42a2e0e9a27b083e01f7080#file-rpn-py
-///! by https://github.com/wd5gnr
-////////////////////////////////////////////////////////////////////////////////
+// # RPN Calculator
+//
+// This is a small program that parses a Reverse Polish Notation Equation
+// and returns the result.
+//
+// This program is based off https://gist.github.com/wd5gnr/68d067c3c42a2e0e9a27b083e01f7080#file-rpn-py
+// by https://github.com/wd5gnr
+
 use anyhow::Result;
 use clap::Parser;
 use rpn_calculator::RPNParser;
@@ -35,14 +35,11 @@ fn main() -> Result<()> {
     if args.test_info {
         dump_test_info()?
     }
-    match args.expression {
-        Some(v) => {
-            let mut calc = RPNParser::new();
-            calc.parse(&v)?;
-            let result = calc.peek()?;
-            println!("{}", result)
-        }
-        None => (),
+    if let Some(v) = args.expression {
+        let mut calc = RPNParser::new();
+        calc.parse(&v)?;
+        let result = calc.peek()?;
+        println!("{}", result)
     }
     Ok(())
 }
