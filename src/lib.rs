@@ -292,4 +292,12 @@ mod tests {
                                           // 2 * `temp`(70) = 140.
         assert_eq!(calc.peek().unwrap(), "140")
     }
+
+    #[test]
+    #[should_panic]
+    fn invalid_expression() {
+        let mut calc = RPNParser::new();
+        calc.parse("50 20 + 2").unwrap();
+        assert_eq!(calc.peek().unwrap(), "140")
+    }
 }
